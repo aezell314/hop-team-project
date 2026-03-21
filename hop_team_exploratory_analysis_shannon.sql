@@ -121,3 +121,12 @@ WHERE entity_type_code = 2;
 -- 635 rows
 
 
+--------------------------------------------------
+-- HOP TEAM
+--------------------------------------------------
+
+-- CREATE MATERIALIZED VIEW hop_team_tn_pcp_hospitals_mv AS
+SELECT h.*
+FROM hop_team h
+	INNER JOIN nppes_tn_pcp_mv np ON h.from_npi = np.npi
+	INNER JOIN nppes_tn_hospitals_mv nh ON h.to_npi = nh.npi; -- 34350 rows
