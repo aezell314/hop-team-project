@@ -37,28 +37,6 @@ ORDER BY zip;
 -- WHERE table_name = 'nppes'
 -- 	AND column_name LIKE 'healthcare_primary_taxonomy_switch%'
 
---------------------------------------------------
--- REFERRING PROVIDERS
---------------------------------------------------
--- PCP only: Family Medicine, Internal Medicine, Pediatrics, General Practice
--- nucc.classification=<pcp>
--- nppes.type=1 (people)
-
--- Create a materialized view for NUCC PCPs
--- CREATE MATERIALIZED VIEW nucc_pcp_mv AS
-SELECT *
-FROM NUCC
-WHERE CLASSIFICATION ILIKE ANY(
-	ARRAY[
-		'FAMILY MEDICINE',
-		'INTERNAL MEDICINE',
-		'PEDIATRICS',
-		'GENERAL PRACTICE'
-	]
-)
-ORDER BY CODE;
--- 68 ROWS
-
 -- Create a materialized view for NPPES in TN with primary taxonomy column
 -- CREATE MATERIALIZED VIEW nppes_tn_primary_taxonomy_mv AS
 SELECT
@@ -86,9 +64,31 @@ WHERE address_state_name IN ('TENNESSEE', 'TN')
 ORDER BY npi;
 -- 138156 rows
 
+--------------------------------------------------
+-- REFERRING PROVIDERS
+--------------------------------------------------
+-- PCP only: Family Medicine, Internal Medicine, Pediatrics, General Practice
+-- nucc.classification=<pcp>
+-- nppes.type=1 (people)
 
+-- Create a materialized view for NUCC PCPs
+-- CREATE MATERIALIZED VIEW nucc_pcp_mv AS
+SELECT *
+FROM nucc
+WHERE classification ILIKE ANY(
+	ARRAY[
+		'family medicine',
+		'internal medicine',
+		'pediatrics',
+		'general practice'
+	]
+)
+ORDER BY code;
+-- 68 ROWS
 
 -- Create a materialized view for NPPES PCPs in TN with primary taxonomy column
+-- (UPDATE TO USE CBSA WHEN READY)
+-- CREATE MATERIALIZED VIEW nppes_tn_pcp_mv AS
 SELECT *
 FROM nppes_tn_primary_taxonomy_mv n
 	INNER JOIN nucc_pcp_mv p ON n.primary_taxonomy_code = p.code
@@ -111,51 +111,13 @@ WHERE grouping ILIKE '%hospital%'
 ORDER BY code;
 -- 23 ROWS
 
--- CREATE A VIEW WITH THIS QUERY: TN_HOSPITALS
-WITH 
-	HOSPITAL_CLASSIFICATIONS AS (
-		SELECT *
-			-- CODE,
-			-- CLASSIFICATION
-		FROM NUCC
-		WHERE GROUPING ILIKE '%HOSPITAL%'
-	),
-	TN_NPPES_PRIMARY_TAXONOMY_CODES AS (
-		SELECT
-			NPI,
-			CASE
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_1 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_1
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_2 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_2
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_3 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_3
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_4 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_4
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_5 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_5
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_6 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_6
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_7 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_7
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_8 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_8
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_9 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_9
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_10 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_10
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_11 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_11
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_12 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_12
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_13 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_13
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_14 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_14
-				WHEN HEALTHCARE_PRIMARY_TAXONOMY_SWITCH_15 = 'Y' THEN HEALTHCARE_TAXONOMY_CODE_15
-				ELSE NULL
-			END AS HEALTHCARE_PRIMARY_TAXONOMY_CODE
-		FROM NPPES
-		WHERE ADDRESS_STATE_NAME IN ('TENNESSEE', 'TN')
-	)
-SELECT
-	N.NPI,
-	N.ORGANIZATION_NAME,
-	N.FIRST_NAME || ' ' || N.LAST_NAME AS pcp,
-	T.HEALTHCARE_PRIMARY_TAXONOMY_CODE,
-	C.CLASSIFICATION
-FROM NPPES N
-	INNER JOIN TN_NPPES_PRIMARY_TAXONOMY_CODES T USING (NPI)
-	INNER JOIN HOSPITAL_CLASSIFICATIONS C ON T.HEALTHCARE_PRIMARY_TAXONOMY_CODE = C.CODE
-ORDER BY N.NPI; -- 1124 ROWS
+-- Create a materialized view for NPPES hospitals in TN with primary taxonomy column
+-- (UPDATE TO USE CBSA WHEN READY)
+-- CREATE MATERIALIZED VIEW nppes_tn_hospitals_mv AS
+SELECT *
+FROM nppes_tn_primary_taxonomy_mv n
+	INNER JOIN nucc_hospitals_mv h ON n.primary_taxonomy_code = h.code
+WHERE entity_type_code = 2;
+-- 635 rows
 
 
--- Identify PCPs who refer patients and the distribution of their referrals across major hospitals.
--- Find PCPs who refer few or no patients to Vanderbilt but send patients to competitor hospitals.
--- Aggregate by PCP specialty to understand which specialties are underrepresented in Vanderbilt’s referral network.
