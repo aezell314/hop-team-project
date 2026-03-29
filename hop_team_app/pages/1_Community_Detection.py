@@ -1,4 +1,5 @@
 import streamlit as st
+import utils
 
 st.set_page_config(layout="wide")
 
@@ -39,6 +40,12 @@ st.divider()
 st.header('PCP -> Referral -> Hospital')
 
 st.image('images/node_structure.png')
+
+st.dataframe(
+    data=utils.community_detection_df,
+    width='content',
+    hide_index=True
+)
 
 st.divider()
 

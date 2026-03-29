@@ -19,11 +19,11 @@ st.title('Analysis')
 
 st.image('figures/specialization_hospital_referral_heatmap1.png')
 
-pcp_patient_count = hop.groupby("pcp_classification")["patient_count"].sum().reset_index()
+pcp_patient_count = hop.groupby("classification")["patient_count"].sum().reset_index()
 
 fig = px.bar(
     pcp_patient_count,                         
-    x="pcp_classification",          
+    x="classification",          
     y="patient_count",               
     title="Top Referring Providers"
 )
