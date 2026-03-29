@@ -17,6 +17,8 @@ hop = utils.hop_team_nashville_df
 
 st.title('Analysis')
 
+st.image('figures/specialization_hospital_referral_heatmap1.png')
+
 pcp_patient_count = hop.groupby("pcp_classification")["patient_count"].sum().reset_index()
 
 fig = px.bar(
