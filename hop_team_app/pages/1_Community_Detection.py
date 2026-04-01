@@ -1,6 +1,7 @@
 import streamlit as st
 import utils
 
+
 st.set_page_config(layout="wide")
 
 st.title('Community Detection', text_alignment='center')
@@ -64,7 +65,15 @@ with neo4j_col2:
     st.space('small')
 
     st.dataframe(
-        data=utils.community_detection_df,
+        data= (
+            utils.hop_team_nashville_df[['providername', 'transaction_count', 'owning_entity']]
+                .sort_values(by='transaction_count', ascending=False)
+                .rename(columns={
+                    'providername': 'Referring PCP',
+                    'transaction_count': 'Number of Referrals',
+                    'owning_entity': 'Receiving Hospital'
+                })
+        ),
         width='content',
         hide_index=True
     )

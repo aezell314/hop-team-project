@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 
 
 # Load data
@@ -9,16 +8,6 @@ def load_data(path:str):
     return pd.read_csv(path)
 
 hop_team_nashville_df = load_data('data/hop_team_nashville.csv')
-
-community_detection_df = (
-    hop_team_nashville_df[['providername', 'transaction_count', 'owning_entity']]
-        .sort_values(by='transaction_count', ascending=False)
-        .rename(columns={
-            'providername': 'Referring PCP',
-            'transaction_count': 'Number of Referrals',
-            'owning_entity': 'Receiving Hospital'
-        })
-)
 
 #-------------------------------------------------
 
@@ -38,3 +27,50 @@ hospital_list = (
     .tolist()
 )
 hospital_list.insert(0, 'All')
+
+#-------------------------------------------------
+
+# CREATE DATAFRAME FOR HEATMAP: HOSPITAL REFERRALS VS PCP SPECIALIZATION
+
+# Get top 10 hospitals by referral count
+top_10_referred_hospitals = (
+    hop_team_nashville_df
+        .groupby('organization_name')
+        .agg(
+            referrals=('transaction_count', 'sum')
+        )
+        .sort_values('referrals', ascending=False)
+        .head(10)
+        .index
+        .to_list()
+)
+
+# Get top 10 pcp specialties by referral count
+top_10_referring_specializations = (
+    hop_team_nashville_df
+        .groupby('specialization')
+        .agg(
+            referrals=('transaction_count', 'sum')
+        )
+        .sort_values('referrals', ascending=False)
+        .head(10)
+        .index
+        .to_list()
+)
+
+# Pivot the specialties wider
+top_10_referral_df = pd.pivot_table(
+    data=(
+        hop_team_nashville_df.loc[
+            (hop_team_nashville_df['organization_name'].isin(top_10_referred_hospitals)) &
+            (hop_team_nashville_df['specialization'].isin(top_10_referring_specializations)),
+            ['organization_name', 'specialization', 'transaction_count']
+        ]
+    ),
+    values='transaction_count',
+    index='organization_name', 
+    columns='specialization', 
+    aggfunc='sum'
+).fillna(0)
+
+#-------------------------------------------------
