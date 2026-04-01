@@ -30,17 +30,56 @@ with st.sidebar:
     )
     
     if selected_community == 'All Communities':
-        final_data = referral_data[referral_data['hospital_community'].isin(filtered_data['hospital_community'].unique())]
+        final_data = referral_data[(referral_data['hospital_community'].isin(filtered_data['hospital_community'].unique())) & (referral_data['provider_community'].isin(filtered_data['hospital_community'].unique()))]
     else:
-        final_data = referral_data[referral_data['hospital_community'] == selected_community]
+        final_data = referral_data[(referral_data['hospital_community'] == selected_community) & (referral_data['provider_community'] == selected_community)]
 
+    # defining ranks
+    if selected_org == 'All Hospitals' or selected_community == 'All Communities':
+        num_spec_rank = num_pcp_rank = num_ref_rank = '-'
+    else:
+        pcp_rank = referral_data.groupby('provider_community')['provider_npi'].nunique().sort_values(ascending=False).reset_index()
+        pcp_rank['Rank'] = pcp_rank['provider_npi'].rank(method='dense',ascending=False).astype(int)
+        num_pcp_rank = pcp_rank.loc[pcp_rank['provider_community'] == selected_community]['Rank'].item()
+
+        spec_rank = referral_data.groupby('provider_community')['specialization_cleaned'].nunique().sort_values(ascending=False).reset_index()
+        spec_rank['Rank'] = spec_rank['specialization_cleaned'].rank(method='dense',ascending=False).astype(int)
+        num_spec_rank = spec_rank.loc[spec_rank['provider_community'] == selected_community]['Rank'].item()
+
+        ref_rank = referral_data.groupby('provider_community')['transaction_count'].sum().sort_values(ascending=False).reset_index()
+        ref_rank['Rank'] = ref_rank['transaction_count'].rank(method='dense',ascending=False).astype(int)
+        num_ref_rank = ref_rank.loc[ref_rank['provider_community'] == selected_community]['Rank'].item()
+    
     total_hospitals = final_data['org_address'].nunique()
+    
     st.write(f"Total hospitals: {total_hospitals}")
-    total_providers = final_data['provider_npi'].nunique()
-    st.write(f"Total providers: {total_providers}")
-    total_transactions = final_data['transaction_count'].sum()
-    st.write(f"Total referrals: {"{:,}".format(total_transactions)}")
 
+    total_transactions = final_data['transaction_count'].sum()
+
+    st.metric(
+    label=f"Total Referrals Rank", 
+    value=num_ref_rank,
+    delta=f"{"{:,}".format(total_transactions)} Total Referrals",
+    delta_arrow="off"
+    )
+
+    total_providers = final_data['provider_npi'].nunique()
+
+    st.metric(
+    label=f"Total Providers Rank", 
+    value=num_pcp_rank,
+    delta=f"{"{:,}".format(total_providers)} Total Providers",
+    delta_arrow="off"
+    )
+
+    total_specializations = final_data['specialization_cleaned'].nunique()
+
+    st.metric(
+    label=f"Total Specializations Rank", 
+    value=num_spec_rank,
+    delta=f"{total_specializations} Total Specializations",
+    delta_arrow="off"
+    )
 
 # group the selected community by hospital and calculate total transaction count
 map_df = final_data.groupby(['organization_name','owning_entity','latitude','longitude','color']).agg({'transaction_count':'sum'}).reset_index()
@@ -53,11 +92,25 @@ for _, row in map_df.iterrows():
     popup = folium.Popup(iframe, min_width=300, max_width=400, min_height=100, max_height=100)
     folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color=row['color'], icon='map-marker'), popup=popup).add_to(m)
 
-st_folium(m, width=1000, height=600)
+st_folium(m, width=900, height=500)
+
+if selected_org != 'All Hospitals' and selected_community != 'All Communities':
+    st.write("Hospitals:")
+    hosp = final_data[['organization_name','org_address']].drop_duplicates(subset=['organization_name','org_address']).rename(columns={'organization_name':'Hospital Name', 'org_address':'Address'})
+    st.dataframe(hosp, use_container_width=True, hide_index=True)
+
+vandy_top_3 = referral_data[(referral_data['hospital_community']==1359) & (referral_data['provider_community']==1359)].groupby('specialization_cleaned')['transaction_count'].sum().sort_values(ascending=False)[0:3].index.to_list()
+
+# Checks if a specialization is in Vandy's top 3 specializations and highlights it in yellow if so
+def highlight_growth_areas(value):
+    if value in vandy_top_3:
+        return 'background-color: yellow' 
+    else:
+        return '' 
 
 st.write("Top specializations:")
 top_spec = final_data.groupby('specialization_cleaned')['transaction_count'].sum().sort_values(ascending=False).head(5).reset_index().rename(columns={'specialization_cleaned':'Specialization','transaction_count':'Total Referrals'})
 top_spec['Total Referrals'] = top_spec['Total Referrals'].apply(lambda x: "{:,}".format(x))
 
-st.dataframe(top_spec, use_container_width=True, hide_index=True)
+st.dataframe(top_spec.style.map(highlight_growth_areas, subset=(top_spec.index[-2:], 'Specialization')), use_container_width=True, hide_index=True)
 
