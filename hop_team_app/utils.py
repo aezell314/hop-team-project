@@ -1,16 +1,14 @@
 import streamlit as st
 import pandas as pd
+from pathlib import Path
 
 
 # Load data
 @st.cache_data
 def load_data(path:str):
-    data = pd.read_csv(path)
-    return data
+    return pd.read_csv(path)
 
 hop_team_nashville_df = load_data('data/hop_team_nashville.csv')
-
-#-------------------------------------------------
 
 community_detection_df = (
     hop_team_nashville_df[['providername', 'transaction_count', 'owning_entity']]

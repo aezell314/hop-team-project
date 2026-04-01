@@ -31,7 +31,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.image('../images/community_detection.jpg')
+try:
+    st.image('images/community_detection.jpg')
+except st.runtime.media_file_storage.MediaFileStorageError:
+    st.image('../images/grant.png')
 
 st.divider()
 
@@ -39,7 +42,10 @@ st.divider()
 
 st.header('PCP -> Referral -> Hospital')
 
-st.image('../images/node_structure.png')
+try:
+    st.image('images/node_structure.png')
+except st.runtime.media_file_storage.MediaFileStorageError:
+    st.image('../images/node_structure.png')
 
 st.dataframe(
     data=utils.community_detection_df,
@@ -50,6 +56,34 @@ st.dataframe(
 st.divider()
 
 #-------------------------------------------------
+
+# Functions used
+'''Graph algorithms are used to compute metrics for graphs, nodes, or relationships.'''
+st.code(
+    '''
+    CALL
+    gds.graph.project(
+        'hopteam',
+        'Provider',
+        {Transaction: {orientation: 'UNDIRECTED', aggregation: 'SUM'}},
+        {relationshipProperties: 'transaction_count'}
+    )
+  '''
+)
+
+st.code(
+    '''
+    CALL
+    gds.louvain.stream('hopteam', { relationshipWeightProperty: 'transaction_count' })
+    YIELD nodeId, communityId
+    RETURN gds.util.asNode(nodeId).npi AS npi, communityId
+    ORDER BY npi ASC
+  '''
+)
+
+#-------------------------------------------------
+
+# Sources
 st.markdown(
     '''
     <sup>1</sup> https://www.sciencedirect.com/topics/computer-science/community-detection<br>

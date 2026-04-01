@@ -22,7 +22,10 @@ with goals_col1:
     '''
 
 with goals_col2:
-    st.image('../images/goals.png', width=200)
+    try:
+        st.image('images/goals.png', width=200)
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/goals.png', width=200)
 
 st.space('small')
 
@@ -33,7 +36,10 @@ st.header('Dataset', divider='rainbow', text_alignment='left')
 data_col1, data_col2 = st.columns([1, 2], vertical_alignment='center')
 
 with data_col1:
-    st.image('../images/dataset.png', width=250)
+    try:
+        st.image('images/dataset.png', width=200)
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/dataset.png', width=200)
 
 with data_col2:
     '''
@@ -58,23 +64,32 @@ with postgres_col1:
     '''
 
 with postgres_col2:
-    st.image('../images/postgresql.png', width=75)
-
+    try:
+        st.image('images/postgresql.png', width=75)
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/postgresql.png', width=75)
+    
 neo_col1, neo_col2 = st.columns([2, 1], vertical_alignment='center')
 
 with neo_col1:
     "* **Neo4j:** The World's Leading Graph Intelligence Platform"
 
 with neo_col2:
-    st.image('../images/neo4j.png', width=75)
-
+    try:
+        st.image('images/neo4j.png', width=75)
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/neo4j.png', width=75)
+    
 streamlit_col1, streamlit_col2 = st.columns([2, 1], vertical_alignment='center')
 
 with streamlit_col1:
     '* **Streamlit:** an open-source app framework'
 
 with streamlit_col2:
-    st.image('../images/streamlit.png', width=75)
+    try:
+        st.image('images/streamlit.png', width=75)
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/streamlit.png', width=75)
 
 st.space('large')
 
@@ -86,17 +101,25 @@ nss_col1, nss_col2, nss_col3, nss_col4, nss_col5, nss_col6 = st.columns([2, 1, 1
 
 
 with nss_col2:
-    'Grant Alan'
-    st.image('../images/grant.png')
+    try:
+        st.image('images/grant.png', caption='Grant Alan')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/grant.png', caption='Grant Alan')
 
 with nss_col3:
-    'Abigail Ezell'
-    st.image('../images/abigail.png')
+    try:
+        st.image('images/abigail.png', caption='Abigail Ezell')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/abigail.png', caption='Abigail Ezell')
 
 with nss_col4:
-    'Shannon Lee'
-    st.image('../images/shannon.png')
+    try:
+        st.image('images/shannon.png', caption='Shannon Lee')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/shannon.png', caption='Shannon Lee')
 
 with nss_col5:
-    'Micheal Major'
-    st.image('../images/micheal.png')
+    try:
+        st.image('images/micheal.png', caption='Micheal Major')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/micheal.png', caption='Micheal Major')

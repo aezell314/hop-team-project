@@ -18,9 +18,10 @@ hop = utils.hop_team_nashville_df
 
 st.title('Analysis')
 
-st.image('../figures/specialization_hospital_referral_heatmap1.png')
-
-st.title('Top Referring Providers')
+try:
+    st.image('figures/specialization_hospital_referral_heatmap1.png')
+except st.runtime.media_file_storage.MediaFileStorageError:
+    st.image('../figures/specialization_hospital_referral_heatmap1.png')
 
 pcp_patient_count = hop.groupby("classification")["patient_count"].sum().reset_index()
 
