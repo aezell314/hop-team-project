@@ -50,3 +50,4 @@ rsconnect/
 
 *.backup
 .venv
+__pycache__/

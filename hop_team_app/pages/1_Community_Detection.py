@@ -31,55 +31,101 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-try:
-    st.image('images/community_detection.jpg')
-except st.runtime.media_file_storage.MediaFileStorageError:
-    st.image('../images/grant.png')
+louvain_col1, louvain_col2, louvain_col3 = st.columns([1, 6, 1], vertical_alignment='center')
+
+with louvain_col2:
+    try:
+        st.image('images/community_detection.jpg')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/community_detection.png')
 
 st.divider()
 
 #-------------------------------------------------
 
-st.header('PCP -> Referral -> Hospital')
+st.header('Neo4j')
 
-try:
-    st.image('images/node_structure.png')
-except st.runtime.media_file_storage.MediaFileStorageError:
-    st.image('../images/node_structure.png')
-
-st.dataframe(
-    data=utils.community_detection_df,
-    width='content',
-    hide_index=True
+st.markdown(
+    '''
+    Neo4j is a native graph database. A Neo4j graph database stores data as nodes, relationships, and properties instead of in tables or documents.
+    The data is stored in Neo4j in the same way you may whiteboard your ideas.<sup>2</sup>
+    ''',
+    unsafe_allow_html=True
 )
 
-st.divider()
+neo4j_col1, neo4j_col2, neo4j_col3 = st.columns([2, 4, 2], vertical_alignment='center')
+
+with neo4j_col2:
+    try:
+        st.image('images/node_structure.png', caption='**PCP -> Referral -> Hospital**')
+    except st.runtime.media_file_storage.MediaFileStorageError:
+        st.image('../images/node_structure.png', caption='**PCP -> Referral -> Hospital**')
+
+    st.space('small')
+
+    st.dataframe(
+        data=utils.community_detection_df,
+        width='content',
+        hide_index=True
+    )
+
+st.space('small')
 
 #-------------------------------------------------
 
 # Functions used
-'''Graph algorithms are used to compute metrics for graphs, nodes, or relationships.'''
-st.code(
+st.markdown(
     '''
-    CALL
-    gds.graph.project(
-        'hopteam',
-        'Provider',
-        {Transaction: {orientation: 'UNDIRECTED', aggregation: 'SUM'}},
-        {relationshipProperties: 'transaction_count'}
-    )
-  '''
+    The Neo4j Graph Data Science (GDS) library provides efficiently implemented, parallel versions of common graph algorithms.<sup>2</sup>
+    * Graph algorithms are used to compute metrics for graphs, nodes, or relationships.
+    * They can provide insights on inherent structures like communities.
+    ''',
+    unsafe_allow_html=True
 )
 
-st.code(
-    '''
-    CALL
-    gds.louvain.stream('hopteam', { relationshipWeightProperty: 'transaction_count' })
-    YIELD nodeId, communityId
-    RETURN gds.util.asNode(nodeId).npi AS npi, communityId
-    ORDER BY npi ASC
-  '''
-)
+code1_col1, code1_col2, code1_col3 = st.columns([1, 6, 1], vertical_alignment='center')
+
+with code1_col2:
+    st.code(
+        '''
+        CALL
+        gds.graph.project(
+            'hopteam',
+            'Provider',
+            {
+                Transaction: {
+                    orientation: 'UNDIRECTED',
+                    aggregation: 'SUM'
+                }
+            },
+            {
+                relationshipProperties: 'transaction_count'
+            }
+        )
+    ''',
+    language='sql'
+    )
+
+code2_col1, code2_col2, code2_col3 = st.columns([1, 6, 1], vertical_alignment='center')
+
+with code2_col2:
+    st.code(
+        '''
+        CALL
+        gds.louvain.stream(
+            'hopteam',
+            {
+                relationshipWeightProperty: 'transaction_count'
+            }
+        )
+        YIELD nodeId, communityId
+        RETURN gds.util.asNode(nodeId).npi AS npi, communityId
+        ORDER BY npi ASC
+    ''',
+    language='sql'
+    )
+
+st.space('large')
 
 #-------------------------------------------------
 
