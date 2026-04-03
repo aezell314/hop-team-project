@@ -150,3 +150,31 @@ st.markdown(
 )
 
 st.space('small')
+
+#-------------------------------------------------
+
+st.header("Wait Time vs Number of Patients")
+
+st.markdown("The following graph shows the efficiency in care based on average patient count and average wait times.")
+
+hop_pc = (
+    utils.hop_team_nashville_df
+        .groupby("provider_community")
+        .agg(
+            {
+                'patient_count': 'mean',
+                'average_day_wait': 'mean'
+            }
+        )
+        .reset_index()
+)
+
+fig = px.scatter(
+    data_frame=hop_pc, 
+    x="patient_count",
+    y="average_day_wait",
+    size="patient_count",
+    hover_name="provider_community"
+)
+
+st.plotly_chart(fig, use_container_width=True)
