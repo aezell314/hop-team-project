@@ -74,3 +74,32 @@ top_10_referral_df = pd.pivot_table(
 ).fillna(0)
 
 #-------------------------------------------------
+
+# CREATE DATAFRAME FOR HEATMAP: ORG REFERRALS VS PCP SPECIALIZATION
+
+# Get orgs by referral count
+top_referred_orgs = (
+    hop_team_nashville_df
+        .groupby('owning_entity')
+        .agg(
+            referrals=('transaction_count', 'sum')
+        )
+        .sort_values('referrals', ascending=False)
+        .index
+        .to_list()
+)
+
+# Pivot the specialties wider
+top_orgs_referral_df = pd.pivot_table(
+    data=(
+        hop_team_nashville_df.loc[
+            (hop_team_nashville_df['owning_entity'].isin(top_referred_orgs)) &
+            (hop_team_nashville_df['specialization'].isin(top_10_referring_specializations)),
+            ['owning_entity', 'specialization', 'transaction_count']
+        ]
+    ),
+    values='transaction_count',
+    index='owning_entity', 
+    columns='specialization', 
+    aggfunc='sum'
+).fillna(0)

@@ -52,7 +52,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 #-------------------------------------------------
 
-st.header('Heatmap')
+st.header('Heatmaps')
 
 st.markdown(
     '''
@@ -98,6 +98,54 @@ st.markdown(
     '''
     * Vanderbilt UMC is the top hospital for referrals by PCP specialization. The next largest number of referrals for Cardiovascular Disease is Saint Thomas, then HCA.
     * Vanderbilt's larget areas of opportunity are within Interventional Cardiology and Pulmonary Disease.
+    '''
+)
+
+st.space('small')
+
+st.markdown(
+    '''
+    The following heatmap is a graphical representation of referrals by color intensity demonstrating the all the organization referrals across the top 10 referring PCP specializations.
+    '''
+)
+
+heatmap2_col1, heatmap2_col2, heatmap2_col3 = st.columns([1, 6, 1], vertical_alignment='center')
+
+with heatmap2_col2:
+    # Create heatmap
+    heatmap2_fig = plt.figure(figsize=(15, 10))
+
+    heatmap2_ax = sns.heatmap(
+        data=utils.top_orgs_referral_df,
+        cmap='Greens',
+        linewidths=0.5,
+        annot=True, # Show values
+        fmt='.0f' # Display as int
+    )
+
+    # Format labels
+    heatmap2_ax.set_title('Referrals From PCP Specialties to Organizations', fontsize=18)
+    heatmap2_ax.set_ylabel('Organizations')
+    heatmap2_ax.set_xlabel('Top 10 PCP Specializations')
+    heatmap2_ax.set_xticklabels(
+        heatmap2_ax.get_xticklabels(),
+        rotation=45,
+        ha='right'
+    )
+    for label in heatmap2_ax.get_yticklabels():
+        if 'Vanderbilt' in label.get_text():
+            label.set_weight('bold')
+            label.set_size(14)
+
+    heatmap2_fig.tight_layout()
+
+    st.pyplot(
+        fig=heatmap2_fig
+    )
+
+st.markdown(
+    '''
+    * Vanderbilt UMC is still the top hospital for referrals by PCP specialization.
     '''
 )
 

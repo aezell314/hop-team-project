@@ -38,7 +38,7 @@ with louvain_col2:
     try:
         st.image('images/community_detection.jpg')
     except st.runtime.media_file_storage.MediaFileStorageError:
-        st.image('../images/community_detection.png')
+        st.image('../images/community_detection.jpg')
 
 st.divider()
 
