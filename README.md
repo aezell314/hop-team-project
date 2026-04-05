@@ -1,81 +1,58 @@
-# Hop Teaming Analysis: Nashville Referral Network
+# Hop Teaming Analysis (Nashville CBSA) 
 
-## Overview
-In this project, you will analyze referral patterns between healthcare providers in the Nashville CBSA using the Hop Teaming dataset. The goal is to explore how primary care physicians (PCPs) refer patients to hospitals, understand referral communities, and create an interactive dashboard to visualize your insights.  
+## Executive Summary
+We analyzed referral patterns from Primary Care Physicians (PCPs) to hospitals within the Nashville CBSA using the CareSet Labs DocGraph Hop Teaming Dataset (2018), which is the most comprehensive open map of the healthcare system in the United States and is also the largest graph dataset available as open data that uses real names. We combined SQL-based aggregation, graph/community detection (Neo4j + Louvain), and interactive visualizations (Streamlit) to identify where Vanderbilt University Medical Center is strong, where competitors dominate, and which provider communities represent the clearest growth opportunities.
 
-You will work with a PostgreSQL database containing the data you need. Additionally, you will use Neo4j to explore provider networks and apply community detection algorithms, and R Shiny to build an interactive visualization of referral patterns.
+## What We Built
+- **Curated analytical dataset** (PCP → Hospital referrals) filtered to meaningful relationships (high volume / low wait time).
+- **Market-share and specialty mix views** (treemap + heatmaps) to understand where patients are going by organization and by referring PCP specialty.
+- **Neo4j graph + Louvain community detection** to identify clusters of providers that behave like referral “communities.”
+- **Operational view** of **wait time vs. patient volume** by community to highlight access/efficiency differences across communities.
 
----
+## Key Findings
+### 1) Hospital patient share (market distribution)
+- Patient referrals are concentrated among a small number of large hospital systems.
+- After consolidating facilities under common umbrellas (e.g., Vanderbilt, Saint Thomas, HCA), Vanderbilt appears as a top destination overall in the Nashville CBSA referral network.
 
-## Datasets Provided
-The data for this project can be downloaded as a postgres backup from https://drive.google.com/file/d/1AqwuVf2DM7a-w8VM9wIX_p4nzOEUbQLM/view?usp=drive_link
+### 2) Specialty-level referral patterns (heatmaps)
+- **Vanderbilt UMC is the top hospital destination across PCP specializations** in the top-referral cohort.
+- For **Cardiovascular Disease**, Vanderbilt leads, with Saint Thomas and HCA as the next major recipients.
+- **Largest growth opportunities for Vanderbilt are:**
+  - **Interventional Cardiology**
+  - **Pulmonary Disease**
+- Quantified highlight from the analysis:
+  - **Vanderbilt’s share of Cardiovascular Disease referrals is ~37.28%** 
 
-**PostgreSQL Database:** Contains four main tables:  
-   - `hop_team`:  Referral transactions between providers
-   - `nppes`: Provider metadata
-   - `nucc`: Taxonomy grouping, classification, and specialization
-   - `zip_cbsa`: Zip Code/CBSA crosswalk
+### 3) Community structure (Neo4j + Louvain algorithm)
+- Referral behavior clusters into distinct communities (dense internal referral patterns).
+- **Vanderbilt appears in 3 referral communities**, compared with **HCA in 7** and **Saint Thomas in 4**, suggesting competitors participate across more distinct referral “ecosystems” in the network.
 
----
+### 4) Access signals (wait time vs. patients)
+- Some communities that are **further out geographically show higher average wait times**, indicating potential access friction (and potential opportunity) in the outer Middle TN region.
 
-## Project Focus
-To narrow the scope of the analysis, apply the following filters:
-- For each provider, identify their primary taxonomy code. In the NPPES data, this is the taxonomy code whose corresponding taxonomy switch column is marked with 'Y'.
-- For the referring providers, filter to Primary Care Physicians (PCPs) only: You can look for classifications of "Family Medicine", "Internal Medicine", "Pediatrics", and "General Practice"
-- For the receiving providers, filter to hospitals.
-- Only referrals in the Nashville CBSA.  
-- To avoid incidental or low-volume referrals, look for significant referral relationships, meaning `transaction_count >= 50` and `avg_day_wait < 50`.
+## Recommendations
+1. **Target outreach to grow referrals** from PCPs whose patient flows align with:
+   - **Interventional Cardiology**
+   - **Pulmonary Disease**
+2. **Defend and expand strongholds** by increasing share within specialties where Vanderbilt already performs well (e.g., Cardiovascular Disease).
+3. **Extend influence farther into Middle TN** by identifying and prioritizing outer communities with high wait times and meaningful referral volume. Consider establishing satellite offices or acquiring existing hospitals that are farther from the metro Nashville area.
+4. **Compete at the community level** (not just provider-by-provider):
+   - Use community detection outputs to identify competitor-dominant clusters and design network-based engagement strategies.
 
----
+## Artifacts in This Repo
+- The **data** folder has csv files containing the raw data used in the project
+   - _hop_team_nashville.csv_ contains the contents of a PostgreSQL materialized view that we created to capture meaningful Medicare referral relationships in the Nashville CBSA.
+       - The SQL code that was used to generate this data can be found in the **sql** folder.
+   - _neo4j_hop_team_algorithm.csv_ contains the results of applying the Louvain community detection algorithm to the above referral data.
+- The **notebooks** folder contains a Jupyter notebook with some exploratory data analysis.
+- The **hop_team_app** folder (as well as the **figures** and **images** folders) contain the component files of a Streamlit application that summarizes our data analysis and conclusions.
+  - The application can be accessed on the web at https://nashville-healthcare-referrals-analysis.streamlit.app/ 
 
-## Tasks
-
-### 1. Create an Analytical Dataset
-Create a materialized view that joins the necessary tables and applies the project filters:
-- Primary taxonomy for each provider
-- PCP specialties for referring providers
-- Hospitals for receiving providers
-- Nashville CBSA
-- Significant referral relationships
-
-This dataset will serve as the foundation for your SQL analysis, Neo4j network export, and Shiny dashboard.
-
-### 2. SQL Analysis
-Using PostgreSQL:  
-- Identify PCPs who refer patients and the distribution of their referrals across major hospitals.  
-- Find PCPs who refer few or no patients to Vanderbilt but send patients to competitor hospitals.  
-- Aggregate by PCP specialty to understand which specialties are underrepresented in Vanderbilt’s referral network.
-
-### 3. Neo4j Network Analysis
-- Create a csv for the provider network in the Nashville CBSA.
-- Load the provider network into Neo4j. In this network, providers are nodes and referral relationships are edges connecting them.   
-- Apply the Louvain community detection algorithm to identify clusters of providers.  
-- Explore which communities refer primarily to Vanderbilt vs competitors and highlight key PCP clusters.
-
-### 4. R Shiny Dashboard
-Build an interactive dashboard that allows users to:  
-- Filter by PCP specialty, hospital, or CBSA.  
-- Visualize top referring PCPs and their referral patterns.  
-- Summarize competitor referral patterns and network clusters.  
-
-### 5. Presentation
-Prepare a brief presentation summarizing your findings:  
-- Which PCP specialties or subgroups represent the largest potential growth opportunities for Vanderbilt.  
-- Key insights from the referral network and community structure.  
-- Recommendations for visualizations or dashboards that could support hospital decision-making.
+## Project Outcome
+This project translated raw referral transactions into actionable network insights. By combining specialty mix, market share, and graph-based communities, we identified concrete referral-growth opportunities for Vanderbilt—especially in Interventional Cardiology and Pulmonary Disease—and highlighted where competitor systems appear to span more referral communities across the Nashville CBSA.
 
 ---
-
-## Deliverables
-1. SQL queries used for analysis.  
-2. Neo4j community detection output.
-3. R Shiny dashboard with interactive filters and charts.  
-4. Presentation summarizing key insights and observations.
-
----
-
-## Learning Goals
-- Practice SQL joins, aggregation, and filtering on real-world healthcare data.  
-- Explore network analysis and community detection using Neo4j.  
-- Create an interactive dashboard using R Shiny to communicate actionable insights.  
-- Understand referral patterns and provider network dynamics in a real-world healthcare context.
+**Sources referenced in the app**
+- Neo4j GDS community detection docs: https://neo4j.com/docs/graph-data-science/current/algorithms/community/
+- Community detection background: https://www.sciencedirect.com/topics/computer-science/community-detection
+- Additional overview: https://memgraph.com/blog/community-detection-algorithms-with-python-networkx
