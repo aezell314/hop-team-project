@@ -46,7 +46,7 @@ We analyzed referral patterns from Primary Care Physicians (PCPs) to hospitals w
    - _neo4j_hop_team_algorithm.csv_ contains the results of applying the Louvain community detection algorithm to the above referral data.
 - The **notebooks** folder contains a Jupyter notebook with some exploratory data analysis.
 - The **hop_team_app** folder (as well as the **figures** and **images** folders) contain the component files of a Streamlit application that summarizes our data analysis and conclusions.
-  - The application can be accessed on the web at https://nashville-healthcare-referrals-analysis.streamlit.app/ 
+  - The application can be accessed on the web at https://nashville-healthcare-referral-analysis.streamlit.app/ 
 
 ## Project Outcome
 This project translated raw referral transactions into actionable network insights. By combining specialty mix, market share, and graph-based communities, we identified concrete referral-growth opportunities for Vanderbilt—especially in Interventional Cardiology and Pulmonary Disease—and highlighted where competitor systems appear to span more referral communities across the Nashville CBSA.
