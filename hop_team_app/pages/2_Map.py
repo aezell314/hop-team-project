@@ -128,7 +128,7 @@ def highlight_growth_areas(value):
         return '' 
 
 if selected_community == 'All Communities' and selected_org == 'All Hospitals':
-    st.write(f"Top PCP specializations for all Middle TN CBSAs:")
+    st.write(f"Top PCP specializations for the Nashville CBSA:")
 elif selected_community == 'All Communities':
     st.write(f"Top PCP specializations for referral communities containing {selected_org}:")
 else:
@@ -137,15 +137,15 @@ else:
 top_spec = final_data.groupby('specialization_cleaned')['transaction_count'].sum().sort_values(ascending=False).head(5).reset_index().rename(columns={'specialization_cleaned':'Specialization','transaction_count':'Total Referrals'})
 top_spec['Total Referrals'] = top_spec['Total Referrals'].apply(lambda x: "{:,}".format(x))
 
-st.dataframe(top_spec.style.map(highlight_growth_areas, subset=(top_spec.index[-2:], 'Specialization')), use_container_width=True, hide_index=True)
+st.dataframe(top_spec.style.map(highlight_growth_areas, subset=(top_spec.index[-2:], 'Specialization')), width='stretch', hide_index=True)
 
 st.caption("A specialization is highlighted in yellow if it is one of Vanderbilt's strongest specializations (in terms of referral count) and is ranked #4 or #5 in the selected community. These could represent possible areas of growth for Vanderbilt's referral network.")
 
 if selected_community == 'All Communities' and selected_org == 'All Hospitals':
-    st.write(f"Hospitals in all Middle TN CBSAs:")
+    st.write(f"Hospitals in the Nashville CBSA:")
 elif selected_community == 'All Communities':
     st.write(f"Hospitals in referral communities containing {selected_org}:")
 else:
     st.write(f"Hospitals in referral community #{selected_community}:")
 
-st.dataframe(final_data[['organization_name','owning_entity','hospital_community']].sort_values(by=['organization_name', 'hospital_community']).drop_duplicates().rename(columns={'organization_name':'Hospital Name','owning_entity':'Hospital System','hospital_community':'Referral Community'}), use_container_width=True, hide_index=True)
+st.dataframe(final_data[['organization_name','owning_entity','hospital_community']].sort_values(by=['organization_name', 'hospital_community']).drop_duplicates().rename(columns={'organization_name':'Hospital Name','owning_entity':'Hospital System','hospital_community':'Referral Community'}), width='stretch', hide_index=True)
