@@ -79,20 +79,20 @@ from nppes
 where npi = 1649269366;
 
 
-
--- Overall query/materialized view:
+-- Overall query. Creating a materialized view to store Medicare referrals from PCPs to hospitals in the Middle TN CBSA:
 CREATE MATERIALIZED view TN_Referrals
 AS
+-- First, narrow our data just to the Nashville CBSA
 with nash_cbsa as (
 	select * 
 	from zip_cbsa z
 	inner join nppes n
-	--on LEFT(CAST(z.zip AS VARCHAR(10)), 5) = CAST(n.address_postal_code  AS VARCHAR(10))
 	ON LEFT(n.address_postal_code::TEXT, 5) = z.zip::TEXT
 	----  Only referrals in the Nashville CBSA.
 	where address_state_name in ('TN','Tennessee')
 	and z.cbsa = 34980
 	),
+-- Figure out the code corresponding to the primary sppecialization for each provider
     primary_code as (
 		select npi, 
 		entity_type_code,
@@ -119,40 +119,44 @@ with nash_cbsa as (
 		end as code 
 from nash_cbsa
 ),
+-- Join the nucc table so that we can determine the name of each provider's primary specialization
 primary_spec as (
 select *
 from primary_code p
 inner join nucc n 
 using(code)
 ),
+-- For the referring providers, filter to Primary Care Physicians (PCPs) only (classifications of "Family Medicine", "Internal Medicine", "Pediatrics", or "General Practice")
 from_npis_of_interest as (
 select p.npi as from_npi, p.first_name, p.last_name, p.grouping, p.classification, p.specialization
 from primary_spec p
--- For the referring providers, filter to Primary Care Physicians (PCPs) only: You can look for classifications of "Family Medicine", "Internal Medicine", "Pediatrics", and "General Practice".
 where classification in ('Family Medicine', 'Internal Medicine', 'Pediatrics', 'General Practice')
 and entity_type_code = 1
 ),
+-- For the receiving providers, filter to only hospitals (grouping contains 'hospital')
 to_npis_of_interest as (
 select p.npi as to_npi, p.organization_name 
 from primary_spec p
--- For the receiving providers, filter to hospitals.
 where grouping ilike '%hospital%'
 and entity_type_code = 2
 )
+-- Create our data of interest by filtering the original dataset to just the providers and referral organization we are interested in via inner joins
+-- To avoid incidental or low-volume referrals, look for significant referral relationships, meaning transaction_count >= 50 and avg_day_wait < 5
 select h.from_npi, f.first_name || ' ' || f.last_name as providername, f.grouping, f.classification, f.specialization, h.to_npi, t.organization_name, h.patient_count, h.transaction_count, h.average_day_wait, h.std_day_wait
 from hop_team h
 inner join from_npis_of_interest f
 on h.from_npi = f.from_npi 
 inner join to_npis_of_interest t
 on h.to_npi = t.to_npi
--- To avoid incidental or low-volume referrals, look for significant referral relationships, meaning transaction_count >= 50 and avg_day_wait < 5
 where h.transaction_count >= 50
 and h.average_day_wait < 50;
 
--- Exploring the view
+-- Print the first 10 rows in the view
 select * from TN_Referrals
 order by providername, organization_name
 limit 10;
+
+-- Initial data exploration:
 
 -- Identify PCPs who refer patients and the distribution of their referrals across major hospitals.
 select organization_name, sum(patient_count) as total_patients_referred, sum(transaction_count) as total_transactions
